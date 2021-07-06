@@ -22,7 +22,7 @@ from multiprocessing.connection import Client
 class Client_t:
     
     def __init__(self):
-        self.addr           = ('166.111.81.72', 13237)
+        self.addr           = ('localhost', 13237)
         self.client_name    = "client"
         self.total_send     = 0
         self.total_recv     = 0
@@ -73,7 +73,7 @@ class Client_t:
         while True:
             while not self.received:
                 try:
-                    send_address = ('166.111.81.72', 13237)
+                    send_address = ('localhost', 13237)
                     conn = Client(send_address, authkey=b'nasnet')
                     if conn.poll(2):
                         [ self.network ] = conn.recv()
@@ -111,7 +111,7 @@ class Client_t:
             #time.sleep(random.randint(2, 5) )
             while self.received:
                 try:
-                    recv_address = ('166.111.81.72', 13237)
+                    recv_address = ('localhost', 13237)
                     conn = Client(recv_address, authkey=b'nasnet')
                     network_str = json.dumps( np.array(network).tolist() )
                     conn.send([self.client_name, network_str, self.acc])
