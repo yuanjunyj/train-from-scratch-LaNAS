@@ -20,6 +20,7 @@ import random
 from datetime import datetime
 from Node import Node, principles_validate
 from multiprocessing.connection import Listener
+import torchvision.datasets as dset
 
 
 
@@ -78,6 +79,11 @@ class MCTS:
         print('='*10 + 'search space start' + '='*10)
         print("total architectures:", len(search_space) )
         print('='*10 + 'search space end  ' + '='*10)
+
+        # Download CIFAR10
+        dset.CIFAR10(root="../data", train=True, download=True)
+        dset.CIFAR10(root="../data", train=False, download=True)
+
         self.init_train()
 
     def print_task_queue(self):
@@ -115,10 +121,11 @@ class MCTS:
                 self.search_space.remove(net)
                 net_str = json.dumps( net )
                 if principles_validate(net_str):
-                    print("Valid", net_str)
+                    print(i, "Valid", net_str)
                     self.TASK_QUEUE.append( net )
+                    break
                 else:
-                    print("Invalid", net_str)
+                    print(i, "Invalid", net_str)
 
         print("="*10 + 'collect '+ str(len(self.TASK_QUEUE) ) +' nets for initializing MCTS')
         
@@ -133,17 +140,17 @@ class MCTS:
         self.CURT = self.ROOT
 
     def dump_all_states(self):
-        node_path = 'mcts_agent'
+        node_path = '../OUTPUT/mcts_agent'
         with open(node_path,"wb") as outfile:
             pickle.dump(self, outfile)
 
     def dump_samples(self):
-        samples_path = 'search_trajectory'
+        samples_path = '../OUTPUT/search_trajectory'
         with open(samples_path, "wb") as outfile:
             pickle.dump(self.samples, outfile)
 
     def loads_all_states(self):
-        node_path = 'nodes'
+        node_path = '../OUTPUT/nodes'
         if os.path.isfile(node_path) == True:
             with open(node_path, 'r') as json_data:
                 self.nodes = jsonpickle.decode(json.load(json_data, object_pairs_hook=OrderedDict))
@@ -230,6 +237,8 @@ class MCTS:
         while len(self.search_space) > 0:
             self.dump_all_states()
             self.dump_samples()
+            if len(self.samples) > 1000:
+                break
             print("-"*20,"iteration:", self.ITERATION )
 
             #dispatch & retrieve jobs:
@@ -305,7 +314,7 @@ print("the length of architecture codes:", arch_code_len)
 print("total architectures:", len(search_space) )
 print("largest single element:", total_max)
 
-node_path = 'mcts_agent'
+node_path = '../OUTPUT/mcts_agent'
 if os.path.isfile(node_path) == True:
     with open(node_path, 'rb') as json_data:
         agent = pickle.load(json_data)
