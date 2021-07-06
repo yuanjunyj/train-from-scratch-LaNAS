@@ -1,0 +1,53 @@
+description: exp
+
+target:
+  service: amlk8s
+  # run "pt target list amlk8s" to list the names of available AMLK8s targets
+  vc: vision-itp-florence
+  name: v100-32gb-eus
+  # vc: csr-itp
+  # name: v100-32gb-wus2-2
+  # vc: csr-itp
+  # name: itphyperdgxcl1
+  # vc: csr-itp-speech
+  # name: itp-v100-wus2
+  # queue: bonus
+
+environment:
+  image: liylu/mainz-trainer-core:0.1.0-pytorch-1.8.0-cuda11.1-cudnn8-hit1.4.0
+  registry: mainztrainercorecontainerregistrywu2.azurecr.io
+  username: MainzTrainerCoreContainerRegistryWU2
+  setup:
+  - bash setup.sh
+
+storage:
+  output:
+    storage_account_name: mengchen
+    container_name: logger
+    mount_dir: /mnt/output
+  dataset:
+    storage_account_name: pubdatasets
+    container_name: imagenet-tsv
+    mount_dir: /mnt/dataset/imagenet-tsv
+ 
+
+code:
+  local_dir: ~/workspace/train-from-scratch-LaNAS/
+
+
+jobs:
+- name: exp
+  sku: G8
+  sku_count: 1
+  aml_mpirun:
+    process_count_per_node: 1
+    communicator: "OpenMpi"
+  command:
+  - bash full.sh
+
+  submit_args:
+    env:
+      NCCL_IB_DISABLE: 0
+      NCCL_DEBUG: INFO
+      NCCL_IB_TIMEOUT: 22
+      MKL_THREADING_LAYER: GNU
