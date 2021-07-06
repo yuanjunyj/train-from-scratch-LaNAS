@@ -224,7 +224,7 @@ class MCTS:
 
 
     def search(self):
-        address = ('166.111.81.72', 13237)
+        address = ('localhost', 13237)
         server = Listener(address, authkey=b'nasnet')
 
         while len(self.search_space) > 0:
