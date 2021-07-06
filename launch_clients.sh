@@ -11,7 +11,7 @@ do
    cp -rf "clientX" "client$c"
    cd "client$c"
    echo $PWD
-   nohup CUDA_VISBLE_DEVICES=$c python client.py &
+   CUDA_VISIBLE_DEVICES=$c nohup python client.py &
    # nohup echo "$c" &
    touch $!".pid"
    cd ".."
