@@ -7,7 +7,8 @@ nohup python MCTS.py >"../OUTPUT/server.txt" 2>&1 &
 sleep 5m
 cd ".."
 
-for (( c=0; c < 16; c++ ))
+GPUS=`nvidia-smi -L | wc -l`
+for (( c=0; c < $GPUS; c++ ))
 do
    echo "---------------------------------"
    echo $PWD
