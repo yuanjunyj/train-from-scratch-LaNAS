@@ -237,8 +237,6 @@ class MCTS:
         while len(self.search_space) > 0:
             self.dump_all_states()
             self.dump_samples()
-            if len(self.samples) > 1000:
-                break
             print("-"*20,"iteration:", self.ITERATION )
 
             #dispatch & retrieve jobs:

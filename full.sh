@@ -21,3 +21,6 @@ do
    echo "$PWD"
    sleep 30s
 done
+
+python query.py >"./OUTPUT/query_result.txt"
+
