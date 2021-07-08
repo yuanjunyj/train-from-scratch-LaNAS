@@ -23,6 +23,8 @@ from multiprocessing.connection import Listener
 import torchvision.datasets as dset
 
 
+mcts_server = None
+
 
 class MCTS:
     
@@ -83,8 +85,6 @@ class MCTS:
         # Download CIFAR10
         dset.CIFAR10(root="../data", train=True, download=True)
         dset.CIFAR10(root="../data", train=False, download=True)
-
-        self.init_train()
 
     def print_task_queue(self):
         print("task queue", "#"*10)
@@ -229,18 +229,19 @@ class MCTS:
                     self.TASK_QUEUE.append(job)
                 print("send or recv timeout, curt queue len:", len(self.TASK_QUEUE) )
 
+    def run_server(self):
+        address = ('localhost', 13237)
+        mcts_server = Listener(address, authkey=b'nasnet')
+        print("Server start")
 
     def search(self):
-        address = ('localhost', 13237)
-        server = Listener(address, authkey=b'nasnet')
-
         while len(self.search_space) > 0:
             self.dump_all_states()
             self.dump_samples()
             print("-"*20,"iteration:", self.ITERATION )
 
             #dispatch & retrieve jobs:
-            self.dispatch_and_retrieve_jobs(server)
+            self.dispatch_and_retrieve_jobs(mcts_server)
             
             #assemble the training data:
             self.populate_training_data()
@@ -322,8 +323,10 @@ if os.path.isfile(node_path) == True:
     print("=====>loads:", len(agent.DISPATCHED_JOB)," dispatched jobs")
     print("=====>loads:", len(agent.TASK_QUEUE)," task_queue jobs")
     print("=====>send&recv:", agent.TOTAL_SEND, agent.TOTAL_RECV)
-
+    agent.run_server()
     agent.search()
 else:
     agent = MCTS(search_space, 8, arch_code_len)
+    agent.run_server()
+    agent.init_train()
     agent.search()

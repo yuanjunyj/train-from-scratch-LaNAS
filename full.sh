@@ -1,4 +1,6 @@
+rm -rf "OUTPUT"
 mkdir "OUTPUT"
+rm -rf "checkpoint"
 mkdir "checkpoint"
 cd "server"
 unzip -o "search_space.zip"
