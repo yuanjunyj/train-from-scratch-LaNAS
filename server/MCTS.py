@@ -230,6 +230,7 @@ class MCTS:
                 print("send or recv timeout, curt queue len:", len(self.TASK_QUEUE) )
 
     def run_server(self):
+        global mcts_server
         address = ('localhost', 13237)
         mcts_server = Listener(address, authkey=b'nasnet')
         print("Server start")
