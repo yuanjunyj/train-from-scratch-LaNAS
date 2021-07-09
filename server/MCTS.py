@@ -231,9 +231,20 @@ class MCTS:
 
     def run_server(self):
         global mcts_server
-        address = ('localhost', 13237)
-        mcts_server = Listener(address, authkey=b'nasnet')
-        print("Server start")
+        port = 13237
+        while True:
+            try:
+                address = ('localhost', port)
+                mcts_server = Listener(address, authkey=b'nasnet')
+                pickle.dump({
+                    'ip': 'localhost',
+                    'port': port
+                }, open("../server_address", "wb"))
+                break
+            except:
+                print("Fail at port", port)
+                port = random.randint(10000, 65535)
+        print("Server start at port", port)
 
     def search(self):
         while len(self.search_space) > 0:

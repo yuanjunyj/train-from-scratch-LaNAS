@@ -14,6 +14,7 @@ for (( c=0; c < $GPUS; c++ ))
 do
    echo "---------------------------------"
    echo $PWD
+   rm -rf "client$c"
    cp -rf "clientX" "client$c"
    cd "client$c"
    echo $PWD
