@@ -193,10 +193,15 @@ def principles_validate(net_str):
     conv0 = [1, 0] + [0] * (node_count)
     conv1 = [0, 1] + [0] * (node_count)
     poolings = 0
+    nested = False
     index = 0
     for i in range(2, node_count + 2):
+        this_ops = []
+        this_prevs = []
         for j in range(2):
             op, src = genotype.normal[index]
+            this_ops.append(op)
+            this_prevs.append(src)
             if 'skip' in op:
                 skip0[i] |= skip0[src]
                 skip1[i] |= skip1[src]
@@ -213,6 +218,12 @@ def principles_validate(net_str):
                 conv0[i] = max(conv0[i], conv0[src] + 2)
                 conv1[i] = max(conv1[i], conv1[src] + 2)
             index += 1
+        try:
+            print(this_ops, this_prevs)
+            if this_ops[0] == this_ops[1] == 'skip_connect' and this_prevs[0] != this_prevs[1]:
+                nested = True
+        except:
+            pass
     s0, s1 = 0, 0
     c0, c1 = 0, 0
     for i in genotype.normal_concat:
@@ -220,7 +231,7 @@ def principles_validate(net_str):
         s1 |= skip1[i]
         c0 = max(c0, conv0[i])
         c1 = max(c1, conv1[i])
-    return s0 == 1 and s1 == 1 and poolings <= 2 and c0 > 2 and c1 > 2
+    return s0 == 1 and s1 == 1 and poolings <= 2 and c0 > 2 and c1 > 2 and nested
 
 operations = ['sep_conv_3x3',
     'max_pool_3x3',

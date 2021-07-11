@@ -118,6 +118,7 @@ class MCTS:
         for i in range(0, 200):
             while True:
                 net     = random.choice(self.search_space)
+                # net     = [2, 2, 0, 2, 1, 2, 0, 2, 2, 3, 2, 1, 2, 0, 0, 1, 1, 1, 2, 1, 1, 0, 3, 4, 3, 0, 3, 1]
                 self.search_space.remove(net)
                 net_str = json.dumps( net )
                 if principles_validate(net_str):
