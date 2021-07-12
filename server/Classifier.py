@@ -90,19 +90,21 @@ class Classifier():
         for k, v in remaining.items():
             net = json.loads(k)
             remaining_archs.append( net )
-        remaining_archs = torch.from_numpy(np.asarray(remaining_archs, dtype=np.float32).reshape(-1, self.input_dim))
+        remaining_archs_input = torch.from_numpy(np.asarray(remaining_archs, dtype=np.float32).reshape(-1, self.input_dim))
         if torch.cuda.is_available():
-            remaining_archs = remaining_archs.cuda()
-        outputs = self.model.forward(remaining_archs)
+            remaining_archs_input = remaining_archs_input.cuda()
+        outputs = self.model.forward(remaining_archs_input)
         if torch.cuda.is_available():
-            remaining_archs = remaining_archs.cpu()
-            outputs         = outputs.cpu()
+            remaining_archs_input = remaining_archs_input.cpu()
+            outputs               = outputs.cpu()
         result  = {}
         counter = 0
         for k in range(0, len(remaining_archs) ):
             counter += 1
-            arch = remaining_archs[k].detach().numpy()
-            arch_str = json.dumps( arch.tolist() )
+            # arch = remaining_archs[k].detach().numpy()
+            # arch_str = json.dumps( arch.tolist() )
+            arch = remaining_archs[k]
+            arch_str = json.dumps( arch )
             result[ arch_str ] = outputs[k].detach().numpy().tolist()[0]
         assert len(result) == len(remaining)
         return result
