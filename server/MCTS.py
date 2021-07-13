@@ -242,7 +242,7 @@ class MCTS:
                         break
                     else:
                         print(time.time())
-                        time.sleep(10)
+                        time.sleep(30)
 
                 is_send_successful = True
                 self.TOTAL_SEND += 1
