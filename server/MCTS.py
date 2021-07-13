@@ -198,33 +198,82 @@ class MCTS:
                 print( "job counter:", self.JOB_COUNTER )
                 print( "get job from QUEUE==>", job ) 
                 print("listening......")
-                conn = server.accept()
-                conn.send( [job] )
-                conn.close()
+                # conn = server.accept()
+                # conn.send( [job] )
+                # conn.close()
+                # is_send_successful = True
+                # self.TOTAL_SEND += 1
+                # print("==>dispatch job:", " total_send:", self.TOTAL_SEND, " total_recv:", self.TOTAL_RECV )
+                # self.JOB_COUNTER += 1
+            
+                # for i in range(0, 5):
+                #     conn = server.accept()
+                #     if conn.poll(0.5):
+                #         receive_signal               = conn.recv()
+                #         client_name                  = receive_signal[0]
+                #         job_str                      = receive_signal[1]
+                #         acc                          = receive_signal[2]
+                #         self.DISPATCHED_JOB[job_str] = acc
+                #         self.samples[job_str]        = acc
+                #         if acc > self.MAX_ACC:
+                #             self.MAX_ACC = acc
+                #         received = True
+                #         self.TOTAL_RECV += 1
+                #         print("retrieve job, curt max acc:", self.MAX_ACC)
+                #         print("="*10, " total_send:", self.TOTAL_SEND, " total_recv:", self.TOTAL_RECV)
+                #         if received:
+                #             self.JOB_COUNTER -= 1
+                #             print(client_name, "==> net:", job_str, acc, " total samples:", len(self.samples)," job counter:", self.JOB_COUNTER )
+                
+                while True:
+                    flag = False
+                    for client_id in range(65536):
+                        if os.path.exists("../client_request." + str(client_id)):
+                            f = open("../client_request." + str(client_id), 'r')
+                            content = f.readlines()[0].strip("\n")
+                            f.close()
+                            if content == "listen":
+                                f = open("../client_request." + str(client_id), 'w')
+                                f.write( json.dumps([ job ]) )
+                                f.close()
+                                flag = True
+                                break
+                    if flag:
+                        break
+                    else:
+                        print(time.time())
+                        time.sleep(10)
+
                 is_send_successful = True
                 self.TOTAL_SEND += 1
                 print("==>dispatch job:", " total_send:", self.TOTAL_SEND, " total_recv:", self.TOTAL_RECV )
                 self.JOB_COUNTER += 1
-            
-                for i in range(0, 5):
-                    conn = server.accept()
-                    if conn.poll(0.5):
-                        receive_signal               = conn.recv()
-                        client_name                  = receive_signal[0]
-                        job_str                      = receive_signal[1]
-                        acc                          = receive_signal[2]
-                        self.DISPATCHED_JOB[job_str] = acc
-                        self.samples[job_str]        = acc
-                        if acc > self.MAX_ACC:
-                            self.MAX_ACC = acc
-                        received = True
-                        self.TOTAL_RECV += 1
-                        print("retrieve job, curt max acc:", self.MAX_ACC)
-                        print("="*10, " total_send:", self.TOTAL_SEND, " total_recv:", self.TOTAL_RECV)
-                        if received:
-                            self.JOB_COUNTER -= 1
-                            print(client_name, "==> net:", job_str, acc, " total samples:", len(self.samples)," job counter:", self.JOB_COUNTER )
 
+                for client_id in range(65536):
+                    if os.path.exists("../client_result." + str(client_id)):
+                        f = open("../client_result." + str(client_id), 'r')
+                        # f.write([self.client_name, network_str, self.acc])
+                        content = f.readlines()[0].strip("\n")
+                        f.close()
+                        try:
+                            receive_signal = json.loads(content)
+                            client_name    = receive_signal[0]
+                            job_str        = receive_signal[1]
+                            acc            = receive_signal[2]
+                            self.DISPATCHED_JOB[job_str] = acc
+                            self.samples[job_str]        = acc
+                            if acc > self.MAX_ACC:
+                                self.MAX_ACC = acc
+                            received = True
+                            self.TOTAL_RECV += 1
+                            print("retrieve job, curt max acc:", self.MAX_ACC)
+                            print("="*10, " total_send:", self.TOTAL_SEND, " total_recv:", self.TOTAL_RECV)
+                            if received:
+                                self.JOB_COUNTER -= 1
+                                print(client_name, "==> net:", job_str, acc, " total samples:", len(self.samples)," job counter:", self.JOB_COUNTER )
+                            os.remove("../client_result." + str(client_id))
+                        except:
+                            None
             except Exception as error:
                 if not is_send_successful:
                     self.TASK_QUEUE.append(job)
@@ -336,10 +385,10 @@ if os.path.isfile(node_path) == True:
     print("=====>loads:", len(agent.DISPATCHED_JOB)," dispatched jobs")
     print("=====>loads:", len(agent.TASK_QUEUE)," task_queue jobs")
     print("=====>send&recv:", agent.TOTAL_SEND, agent.TOTAL_RECV)
-    agent.run_server()
+    # agent.run_server()
     agent.search()
 else:
     agent = MCTS(search_space, 8, arch_code_len)
-    agent.run_server()
+    # agent.run_server()
     agent.init_train()
     agent.search()

@@ -219,7 +219,6 @@ def principles_validate(net_str):
                 conv1[i] = max(conv1[i], conv1[src] + 2)
             index += 1
         try:
-            print(this_ops, this_prevs)
             if this_ops[0] == this_ops[1] == 'skip_connect' and this_prevs[0] != this_prevs[1]:
                 nested = True
         except:

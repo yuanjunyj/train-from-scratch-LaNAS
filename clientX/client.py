@@ -22,12 +22,12 @@ from multiprocessing.connection import Client
 class Client_t:
     
     def __init__(self):
-        server_address      = pickle.load(open("../server_address", "rb"))
-        print(server_address)
-        self.ip             = server_address['ip']
-        self.port           = server_address['port'] # default port 13237
-        self.addr           = (self.ip, self.port)
-        print("Server Address:", self.addr)
+        # server_address      = pickle.load(open("../server_address", "rb"))
+        # print(server_address)
+        # self.ip             = server_address['ip']
+        # self.port           = server_address['port'] # default port 13237
+        # self.addr           = (self.ip, self.port)
+        # print("Server Address:", self.addr)
         self.client_name    = "client"
         self.total_send     = 0
         self.total_recv     = 0
@@ -39,6 +39,17 @@ class Client_t:
         self.received       = False
         self.network        = []
         self.acc            = 0
+
+        while True:
+            self.id             = random.randint(1, 65535)
+            if not os.path.exists("../ID." + str(self.id)):
+                f = open("./ID." + str(self.id), 'w')
+                f.write(str(self.id))
+                f.close()
+                f = open("../client_request." + str(self.id), 'w')
+                f.write("listen")
+                f.close()
+                break
     
     def print_client_status(self):
         print("client->receive status: ", client.received  )
@@ -79,17 +90,33 @@ class Client_t:
             while not self.received:
                 try:
                     # send_address = ('localhost', self.port)
-                    send_address = self.addr
-                    conn = Client(send_address, authkey=b'nasnet')
-                    if conn.poll(2):
-                        [ self.network ] = conn.recv()
-                        self.total_recv += 1
-                        conn.close()
-                        self.received = True
-                        self.dump_client()
-                        print("RECEIEVE:=>", self.network)
-                        print("RECEIEVE:=>", " total_send:", self.total_send, " total_recv:", self.total_recv)
-                        self.print_client_status()
+                    # send_address = self.addr
+                    # conn = Client(send_address, authkey=b'nasnet')
+                    # if conn.poll(2):
+                    #     [ self.network ] = conn.recv()
+                    #     self.total_recv += 1
+                    #     conn.close()
+                    #     self.received = True
+                    #     self.dump_client()
+                    #     print("RECEIEVE:=>", self.network)
+                    #     print("RECEIEVE:=>", " total_send:", self.total_send, " total_recv:", self.total_recv)
+                    #     self.print_client_status()
+                    while True:
+                        print( time.time(), "try to get new network" )
+                        f = open("../client_request." + str(self.id), 'r')
+                        content = f.readlines()[0].strip("\n")
+                        f.close()
+                        if content != "listen":
+                            [ self.network ] = json.loads(content)
+                            self.total_recv += 1
+                            self.received = True
+                            self.dump_client()
+                            print("RECEIEVE:=>", self.network)
+                            print("RECEIEVE:=>", " total_send:", self.total_send, " total_recv:", self.total_recv)
+                            self.print_client_status()
+                            break
+                        else:
+                            time.sleep(73)
                 except Exception as e:
                     print(e)
                     print(traceback.format_exc())
@@ -118,10 +145,22 @@ class Client_t:
             while self.received:
                 try:
                     # recv_address = ('localhost', self.port)
-                    recv_address = self.addr
-                    conn = Client(recv_address, authkey=b'nasnet')
+                    # recv_address = self.addr
+                    # conn = Client(recv_address, authkey=b'nasnet')
+                    # network_str = json.dumps( np.array(network).tolist() )
+                    # conn.send([self.client_name, network_str, self.acc])
+                    # self.total_send += 1
+                    # print("SEND:=>", self.network, self.acc)
+                    # self.network  = []
+                    # self.acc      = 0
+                    # self.received = False
+                    # self.dump_client()
+                    # print("SEND:=>", " total_send:", self.total_send, " total_recv:", self.total_recv)
+                    # conn.close()
                     network_str = json.dumps( np.array(network).tolist() )
-                    conn.send([self.client_name, network_str, self.acc])
+                    f = open("../client_result." + str(self.id), 'w')
+                    f.write(json.dumps([self.client_name, network_str, self.acc]))
+                    f.close()
                     self.total_send += 1
                     print("SEND:=>", self.network, self.acc)
                     self.network  = []
@@ -129,7 +168,9 @@ class Client_t:
                     self.received = False
                     self.dump_client()
                     print("SEND:=>", " total_send:", self.total_send, " total_recv:", self.total_recv)
-                    conn.close()
+                    f = open("../client_request." + str(self.id), 'w')
+                    f.write("listen")
+                    f.close()
                 except Exception as e:
                     print(e)
                     print(traceback.format_exc())
