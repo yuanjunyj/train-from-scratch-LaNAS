@@ -1,5 +1,3 @@
-rm -rf "OUTPUT"
-mkdir "OUTPUT"
 rm -rf "checkpoint"
 mkdir "checkpoint"
 cd "server"
