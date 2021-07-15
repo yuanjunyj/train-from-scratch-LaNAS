@@ -1,4 +1,3 @@
-rm -rf "checkpoint"
 mkdir "checkpoint"
 cd "server"
 unzip -o "search_space.zip"
@@ -16,7 +15,8 @@ do
    cp -rf "clientX" "client$c"
    cd "client$c"
    echo $PWD
-   CUDA_VISIBLE_DEVICES=$c nohup python client.py >"../OUTPUT/"$c".txt" 2>&1 &
+   cid=$[$c+10]
+   CUDA_VISIBLE_DEVICES=$c nohup python client.py --client_id $cid >"../OUTPUT/"$cid".txt" 2>&1 &
    # nohup echo "$c" &
    # touch $!".pid"
    cd ".."

@@ -17,11 +17,12 @@ import train_client
 from nasnet_set import *
 from array import array
 from multiprocessing.connection import Client
+import argparse
 
 
 class Client_t:
     
-    def __init__(self):
+    def __init__(self, client_id):
         # server_address      = pickle.load(open("../server_address", "rb"))
         # print(server_address)
         # self.ip             = server_address['ip']
@@ -40,16 +41,25 @@ class Client_t:
         self.network        = []
         self.acc            = 0
 
-        while True:
-            self.id             = random.randint(1, 65535)
-            if not os.path.exists("../ID." + str(self.id)):
-                f = open("./ID." + str(self.id), 'w')
-                f.write(str(self.id))
-                f.close()
-                f = open("../client_request." + str(self.id), 'w')
-                f.write("listen")
-                f.close()
-                break
+        # while True:
+        #     self.id             = random.randint(1, 65535)
+        #     if not os.path.exists("../OUTPUT/ID." + str(self.id)):
+        #         f = open("../OUTPUT/ID." + str(self.id), 'w')
+        #         f.write(str(self.id))
+        #         f.close()
+        #         f = open("../OUTPUT/client_request." + str(self.id), 'w')
+        #         f.write("listen")
+        #         f.close()
+        #         break
+
+        self.id = client_id
+        f = open("../OUTPUT/ID." + str(self.id), 'w')
+        f.write(str(self.id))
+        f.close()
+        f = open("../OUTPUT/client_request." + str(self.id), 'w')
+        f.write("listen")
+        f.close()
+
     
     def print_client_status(self):
         print("client->receive status: ", client.received  )
@@ -61,17 +71,17 @@ class Client_t:
     def sig_handler(self, signum, frame):
         print("caught signal", signum," about to exit, dump client")
         self.dump_client()
-        if os.path.isfile('client.inst'):
+        if os.path.isfile('../OUTPUT/client.inst.' + str(self.id)):
             print("dump successful")
 
     def term_handler(self, signum, frame):
         self.dump_client()
-        if os.path.isfile('client.inst'):
+        if os.path.isfile('../OUTPUT/client.inst.' + str(self.id)):
              print("dump successful")
         print("terminated caught", flush=True)
 
     def dump_client(self):
-        client_path = 'client.inst'
+        client_path = '../OUTPUT/client.inst.' + str(self.id)
         with open(client_path,"wb") as outfile:
             pickle.dump(self, outfile)
     
@@ -103,7 +113,7 @@ class Client_t:
                     #     self.print_client_status()
                     while True:
                         print( time.time(), "try to get new network" )
-                        f = open("../client_request." + str(self.id), 'r')
+                        f = open("../OUTPUT/client_request." + str(self.id), 'r')
                         content = f.readlines()[0].strip("\n")
                         f.close()
                         if content != "listen":
@@ -158,7 +168,7 @@ class Client_t:
                     # print("SEND:=>", " total_send:", self.total_send, " total_recv:", self.total_recv)
                     # conn.close()
                     network_str = json.dumps( np.array(network).tolist() )
-                    f = open("../client_result." + str(self.id), 'w')
+                    f = open("../OUTPUT/client_result." + str(self.id), 'w')
                     f.write(json.dumps([self.client_name, network_str, self.acc]))
                     f.close()
                     self.total_send += 1
@@ -168,20 +178,25 @@ class Client_t:
                     self.received = False
                     self.dump_client()
                     print("SEND:=>", " total_send:", self.total_send, " total_recv:", self.total_recv)
-                    f = open("../client_request." + str(self.id), 'w')
+                    f = open("../OUTPUT/client_request." + str(self.id), 'w')
                     f.write("listen")
                     f.close()
                 except Exception as e:
                     print(e)
                     print(traceback.format_exc())
                     print("client send error, reconnecting")
+            sys.stdout.flush()
 
-inst_path = 'client.inst'
+parser = argparse.ArgumentParser("Client_t")
+parser.add_argument('--client_id', type=int, default=0, help='Client id')
+args = parser.parse_args()
+
+inst_path = '../OUTPUT/client.inst.' + str(args.client_id)
 if os.path.isfile( inst_path ) == True:
     with open(inst_path, 'rb') as client_data:
         client = pickle.load( client_data )
         client.print_client_status()
     client.train()
 else:
-    client = Client_t()
+    client = Client_t(args.client_id)
     client.train()

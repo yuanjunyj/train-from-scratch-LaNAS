@@ -228,12 +228,12 @@ class MCTS:
                 while True:
                     flag = False
                     for client_id in range(65536):
-                        if os.path.exists("../client_request." + str(client_id)):
-                            f = open("../client_request." + str(client_id), 'r')
+                        if os.path.exists("../OUTPUT/client_request." + str(client_id)):
+                            f = open("../OUTPUT/client_request." + str(client_id), 'r')
                             content = f.readlines()[0].strip("\n")
                             f.close()
                             if content == "listen":
-                                f = open("../client_request." + str(client_id), 'w')
+                                f = open("../OUTPUT/client_request." + str(client_id), 'w')
                                 f.write( json.dumps([ job ]) )
                                 f.close()
                                 flag = True
@@ -250,8 +250,8 @@ class MCTS:
                 self.JOB_COUNTER += 1
 
                 for client_id in range(65536):
-                    if os.path.exists("../client_result." + str(client_id)):
-                        f = open("../client_result." + str(client_id), 'r')
+                    if os.path.exists("../OUTPUT/client_result." + str(client_id)):
+                        f = open("../OUTPUT/client_result." + str(client_id), 'r')
                         # f.write([self.client_name, network_str, self.acc])
                         content = f.readlines()[0].strip("\n")
                         f.close()
@@ -271,13 +271,14 @@ class MCTS:
                             if received:
                                 self.JOB_COUNTER -= 1
                                 print(client_name, "==> net:", job_str, acc, " total samples:", len(self.samples)," job counter:", self.JOB_COUNTER )
-                            os.remove("../client_result." + str(client_id))
+                            os.remove("../OUTPUT/client_result." + str(client_id))
                         except:
                             None
             except Exception as error:
                 if not is_send_successful:
                     self.TASK_QUEUE.append(job)
                 print("send or recv timeout, curt queue len:", len(self.TASK_QUEUE) )
+            sys.stdout.flush()
 
     def run_server(self):
         global mcts_server
