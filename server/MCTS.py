@@ -21,9 +21,11 @@ from datetime import datetime
 from Node import Node, principles_validate
 from multiprocessing.connection import Listener
 import torchvision.datasets as dset
+import argparse
 
 
 mcts_server = None
+use_principle = False
 
 
 class MCTS:
@@ -121,7 +123,7 @@ class MCTS:
                 # net     = [2, 2, 0, 2, 1, 2, 0, 2, 2, 3, 2, 1, 2, 0, 0, 1, 1, 1, 2, 1, 1, 0, 3, 4, 3, 0, 3, 1]
                 self.search_space.remove(net)
                 net_str = json.dumps( net )
-                if principles_validate(net_str):
+                if not use_principle or principles_validate(net_str):
                     print(i, "Valid", net_str)
                     self.TASK_QUEUE.append( net )
                     break
@@ -333,7 +335,7 @@ class MCTS:
             for i in range(0, 50):
                 #select
                 target_bin   = self.select()
-                sampled_arch = target_bin.sample_arch()
+                sampled_arch = target_bin.sample_arch(use_principle)
                 sampled_arch = None
                 #NOTED: the sampled arch can be None
                 if sampled_arch is not None:
@@ -347,7 +349,7 @@ class MCTS:
                     #trail 1: pick a network from the best leaf
                     for n in self.nodes:
                         if n.is_leaf == True:
-                            sampled_arch = n.sample_arch()
+                            sampled_arch = n.sample_arch(use_principle)
                             if sampled_arch is not None:
                                 if json.dumps(sampled_arch) not in self.DISPATCHED_JOB:
                                     self.TASK_QUEUE.append( sampled_arch )
@@ -361,6 +363,13 @@ class MCTS:
             self.ITERATION  += 1
 
 ############MAIN############
+
+parser = argparse.ArgumentParser("server")
+parser.add_argument('--principle', action='store_true', default=False, help='use design princuples')
+args = parser.parse_args()
+if args.principle:
+    use_principle = True
+
 data = {}
 with open('search_space', 'r') as infile:
     data = json.loads( infile.read() )

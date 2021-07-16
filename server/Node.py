@@ -10,6 +10,7 @@ import math
 from collections import namedtuple
 Genotype = namedtuple('Genotype', 'normal normal_concat reduce reduce_concat')
 
+
 class Node:
     obj_counter   = 0
     # If a leave holds >= SPLIT_THRESH, we split into two new nodes.
@@ -168,13 +169,13 @@ class Node:
                 self.bag = self.parent.bad_kid_data
                 self.good_kid_data, self.bad_kid_data = self.classifier.split_predictions(self.parent.bad_kid_data)
 
-    def sample_arch(self):
+    def sample_arch(self, use_principle=False):
         while True:
             if len(self.bag) == 0:
                 return None
             net_str = np.random.choice( list(self.bag.keys() ) )
             del self.bag[net_str]
-            if principles_validate(net_str):
+            if not use_principle or principles_validate(net_str):
                 return json.loads(net_str)
     
     def clear_data(self):
